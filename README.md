@@ -2,8 +2,6 @@
 
 This repository includes two utilities NTLMParse and ADFSRelay. NTLMParse is a utility for decoding base64-encoded NTLM messages and printing information about the underlying properties and fields within the message. Examining these NTLM messages is helpful when researching the behavior of a particular NTLM implementation. ADFSRelay is a proof of concept utility developed while researching the feasibility of NTLM relaying attacks targeting the ADFS service. This utility can be leveraged to perform NTLM relaying attacks targeting ADFS.
 
-TODO: Reference and link to the published blog post
-
 # NTLMParse Usage
 
 To use the NTLMParse utility you simply need to pass a Base64 encoded message to the application and it will decode the relevant fields and structures within the message. The snippet given below shows the expected output of NTLMParse when it is invoked:
@@ -38,7 +36,7 @@ To use the NTLMParse utility you simply need to pass a Base64 encoded message to
 
 # ADFSRelay Usage
 
-ADFSRelay has a single required argument, the URL of the ADFS server to target for an NTLM relaying attack. In addition to this, there are three optional arguments -debug to enable debugging mode, -port to define the port the service should listen on, and -help to display the help menu. An example help menu is given below:
+The single required argument for ADFSRelay is the URL of the ADFS server to target for an NTLM relaying attack. Three optional arguments are -debug to enable debugging mode, -port to define the port the service should listen on, and -help to display the help menu. An example help menu is given below:
 
 ```
 ➜  ~ ADFSRelay -h
