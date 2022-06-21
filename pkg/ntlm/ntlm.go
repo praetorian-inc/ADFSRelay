@@ -46,7 +46,7 @@ func DecodeNegotiateMessage(rawBytes []byte) (*NEGOTIATE_MESSAGE, error) {
 	var NegotiateMessage NEGOTIATE_MESSAGE
 	var err error
 
-	if uint32(len(rawBytes)) < NTLM_MINIMUM_NEGOTIATE_SIZE {
+	if len(rawBytes) < NTLM_MINIMUM_NEGOTIATE_SIZE {
 		return nil, fmt.Errorf("NTLM message too short")
 	}
 
@@ -128,7 +128,7 @@ func DecodeChallengeMessage(rawBytes []byte) (*CHALLENGE_MESSAGE, error) {
 	var ChallengeMessage CHALLENGE_MESSAGE
 	var err error
 
-	if uint32(len(rawBytes)) < NTLM_MINIMUM_CHALLENGE_SIZE {
+	if len(rawBytes) < NTLM_MINIMUM_CHALLENGE_SIZE {
 		return nil, fmt.Errorf("buffer is too short for a challenge message")
 	}
 
@@ -217,7 +217,7 @@ func DecodeAuthenticateMessage(rawBytes []byte) (*AUTHENTICATE_MESSAGE, error) {
 	var AuthenticateMessage AUTHENTICATE_MESSAGE
 	var err error
 
-	if uint32(len(rawBytes)) < NTLM_MINIMUM_AUTHENTICATE_SIZE {
+	if len(rawBytes) < NTLM_MINIMUM_AUTHENTICATE_SIZE {
 		return nil, fmt.Errorf("buffer is too short for a challenge message")
 	}
 
