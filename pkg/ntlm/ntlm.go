@@ -44,63 +44,26 @@ func DecodeMessage(rawBytes []byte) (interface{}, error) {
 
 func DecodeNegotiateMessage(rawBytes []byte) (*NEGOTIATE_MESSAGE, error) {
 	var NegotiateMessage NEGOTIATE_MESSAGE
-	var err error
 
 	if len(rawBytes) < NTLM_MINIMUM_NEGOTIATE_SIZE {
 		return nil, fmt.Errorf("NTLM message too short")
 	}
 
 	NegotiateMessage.Signature = rawBytes[:8]
-	NegotiateMessage.MessageType, err = decodeInt32LittleEndian(rawBytes[8:12])
-	if err != nil {
-		return nil, err
-	}
-
-	NegotiateMessage.NegotiateFlags, err = decodeInt32LittleEndian(rawBytes[12:16])
-	if err != nil {
-		return nil, err
-	}
+	NegotiateMessage.MessageType = decodeInt32LittleEndian(rawBytes[8:12])
+	NegotiateMessage.NegotiateFlags = decodeInt32LittleEndian(rawBytes[12:16])
 	NegotiateMessage.DecodedNegotiateFlags = DecodeNegotiateFlags(NegotiateMessage.NegotiateFlags)
-
-	NegotiateMessage.DomainNameFields.DomainNameLen, err = decodeInt16LittleEndian(rawBytes[16:18])
-	if err != nil {
-		return nil, err
-	}
-
-	NegotiateMessage.DomainNameFields.DomainNameMaxLen, err = decodeInt16LittleEndian(rawBytes[18:20])
-	if err != nil {
-		return nil, err
-	}
-
-	NegotiateMessage.DomainNameFields.DomainNameBufferOffset, err = decodeInt32LittleEndian(rawBytes[20:24])
-	if err != nil {
-		return nil, err
-	}
-
-	NegotiateMessage.WorkstationFields.WorkstationLen, err = decodeInt16LittleEndian(rawBytes[24:26])
-	if err != nil {
-		return nil, err
-	}
-
-	NegotiateMessage.WorkstationFields.WorkstationMaxLen, err = decodeInt16LittleEndian(rawBytes[26:28])
-	if err != nil {
-		return nil, err
-	}
-
-	NegotiateMessage.WorkstationFields.WorkstationBufferOffset, err = decodeInt32LittleEndian(rawBytes[28:32])
-	if err != nil {
-		return nil, err
-	}
+	NegotiateMessage.DomainNameFields.DomainNameLen = decodeInt16LittleEndian(rawBytes[16:18])
+	NegotiateMessage.DomainNameFields.DomainNameMaxLen = decodeInt16LittleEndian(rawBytes[18:20])
+	NegotiateMessage.DomainNameFields.DomainNameBufferOffset = decodeInt32LittleEndian(rawBytes[20:24])
+	NegotiateMessage.WorkstationFields.WorkstationLen = decodeInt16LittleEndian(rawBytes[24:26])
+	NegotiateMessage.WorkstationFields.WorkstationMaxLen = decodeInt16LittleEndian(rawBytes[26:28])
+	NegotiateMessage.WorkstationFields.WorkstationBufferOffset = decodeInt32LittleEndian(rawBytes[28:32])
 
 	if NegotiateMessage.DecodedNegotiateFlags.NTLM_NEGOTIATE_VERSION {
 		NegotiateMessage.Version.ProductMajorVersion = rawBytes[32]
 		NegotiateMessage.Version.ProductMinorVersion = rawBytes[33]
-
-		NegotiateMessage.Version.ProductBuild, err = decodeInt16LittleEndian(rawBytes[34:36])
-		if err != nil {
-			return nil, err
-		}
-
+		NegotiateMessage.Version.ProductBuild = decodeInt16LittleEndian(rawBytes[34:36])
 		NegotiateMessage.Version.Reserved = rawBytes[36:39]
 		NegotiateMessage.Version.NTLMRevisionCurrent = rawBytes[39]
 	}
@@ -133,26 +96,10 @@ func DecodeChallengeMessage(rawBytes []byte) (*CHALLENGE_MESSAGE, error) {
 	}
 
 	ChallengeMessage.Signature = rawBytes[:8]
-	ChallengeMessage.MessageType, err = decodeInt32LittleEndian(rawBytes[8:12])
-	if err != nil {
-		return nil, err
-	}
-
-	ChallengeMessage.TargetNameFields.TargetNameLen, err = decodeInt16LittleEndian(rawBytes[12:14])
-	if err != nil {
-		return nil, err
-	}
-
-	ChallengeMessage.TargetNameFields.TargetNameMaxLen, err = decodeInt16LittleEndian(rawBytes[14:16])
-	if err != nil {
-		return nil, err
-	}
-
-	ChallengeMessage.TargetNameFields.TargetNameBufferOffset, err = decodeInt32LittleEndian(rawBytes[16:20])
-	if err != nil {
-		return nil, err
-	}
-
+	ChallengeMessage.MessageType = decodeInt32LittleEndian(rawBytes[8:12])
+	ChallengeMessage.TargetNameFields.TargetNameLen = decodeInt16LittleEndian(rawBytes[12:14])
+	ChallengeMessage.TargetNameFields.TargetNameMaxLen = decodeInt16LittleEndian(rawBytes[14:16])
+	ChallengeMessage.TargetNameFields.TargetNameBufferOffset = decodeInt32LittleEndian(rawBytes[16:20])
 	TargetNameFields := ChallengeMessage.TargetNameFields
 	beginOffset := TargetNameFields.TargetNameBufferOffset
 	endOffset := beginOffset + uint32(TargetNameFields.TargetNameLen)
@@ -160,31 +107,14 @@ func DecodeChallengeMessage(rawBytes []byte) (*CHALLENGE_MESSAGE, error) {
 		return nil, fmt.Errorf("TargetName, NTLM message too short, endOffset %d > len(rawBytes) %d", endOffset, len(rawBytes))
 	}
 	ChallengeMessage.TargetNameFields.TargetName = rawBytes[beginOffset:endOffset]
-
-	ChallengeMessage.NegotiateFlags, err = decodeInt32LittleEndian(rawBytes[20:24])
-	if err != nil {
-		return nil, err
-	}
+	ChallengeMessage.NegotiateFlags = decodeInt32LittleEndian(rawBytes[20:24])
 	ChallengeMessage.DecodedNegotiateFlags = DecodeNegotiateFlags(ChallengeMessage.NegotiateFlags)
 
 	ChallengeMessage.ServerChallenge = rawBytes[24:32]
 	ChallengeMessage.Reserved = rawBytes[32:40]
-
-	ChallengeMessage.TargetInfoFields.TargetInfoLen, err = decodeInt16LittleEndian(rawBytes[40:42])
-	if err != nil {
-		return nil, err
-	}
-
-	ChallengeMessage.TargetInfoFields.TargetInfoMaxLen, err = decodeInt16LittleEndian(rawBytes[42:44])
-	if err != nil {
-		return nil, err
-	}
-
-	ChallengeMessage.TargetInfoFields.TargetInfoBufferOffset, err = decodeInt32LittleEndian(rawBytes[44:48])
-	if err != nil {
-		return nil, err
-	}
-
+	ChallengeMessage.TargetInfoFields.TargetInfoLen = decodeInt16LittleEndian(rawBytes[40:42])
+	ChallengeMessage.TargetInfoFields.TargetInfoMaxLen = decodeInt16LittleEndian(rawBytes[42:44])
+	ChallengeMessage.TargetInfoFields.TargetInfoBufferOffset = decodeInt32LittleEndian(rawBytes[44:48])
 	TargetInfoFields := ChallengeMessage.TargetInfoFields
 	beginOffset = TargetInfoFields.TargetInfoBufferOffset
 	endOffset = beginOffset + uint32(TargetInfoFields.TargetInfoLen)
@@ -200,12 +130,7 @@ func DecodeChallengeMessage(rawBytes []byte) (*CHALLENGE_MESSAGE, error) {
 	if ChallengeMessage.DecodedNegotiateFlags.NTLM_NEGOTIATE_VERSION {
 		ChallengeMessage.Version.ProductMajorVersion = rawBytes[32]
 		ChallengeMessage.Version.ProductMinorVersion = rawBytes[33]
-
-		ChallengeMessage.Version.ProductBuild, err = decodeInt16LittleEndian(rawBytes[48:50])
-		if err != nil {
-			return nil, err
-		}
-
+		ChallengeMessage.Version.ProductBuild = decodeInt16LittleEndian(rawBytes[48:50])
 		ChallengeMessage.Version.Reserved = rawBytes[50:53]
 		ChallengeMessage.Version.NTLMRevisionCurrent = rawBytes[53]
 	}
@@ -222,115 +147,32 @@ func DecodeAuthenticateMessage(rawBytes []byte) (*AUTHENTICATE_MESSAGE, error) {
 	}
 
 	AuthenticateMessage.Signature = rawBytes[:8]
-	AuthenticateMessage.MessageType, err = decodeInt32LittleEndian(rawBytes[8:12])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.LmChallengeResponseFields.LmChallengeResponseLen, err = decodeInt16LittleEndian(rawBytes[12:14])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.LmChallengeResponseFields.LmChallengeResponseMaxLen, err = decodeInt16LittleEndian(rawBytes[14:16])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.LmChallengeResponseFields.LmChallengeResponseBufferOffset, err = decodeInt32LittleEndian(rawBytes[16:20])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.NtChallengeResponseFields.NtChallengeResponseLen, err = decodeInt16LittleEndian(rawBytes[20:22])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.NtChallengeResponseFields.NtChallengeResponseMaxLen, err = decodeInt16LittleEndian(rawBytes[22:24])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.NtChallengeResponseFields.NtChallengeResponseBufferOffset, err = decodeInt32LittleEndian(rawBytes[24:28])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.DomainNameFields.DomainNameLen, err = decodeInt16LittleEndian(rawBytes[28:30])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.DomainNameFields.DomainNameMaxLen, err = decodeInt16LittleEndian(rawBytes[30:32])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.DomainNameFields.DomainNameBufferOffset, err = decodeInt32LittleEndian(rawBytes[32:36])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.UserNameFields.UserNameLen, err = decodeInt16LittleEndian(rawBytes[36:38])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.UserNameFields.UserNameMaxLen, err = decodeInt16LittleEndian(rawBytes[38:40])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.UserNameFields.UserNameBufferOffset, err = decodeInt32LittleEndian(rawBytes[40:44])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.WorkstationFields.WorkstationLen, err = decodeInt16LittleEndian(rawBytes[44:46])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.WorkstationFields.WorkstationMaxLen, err = decodeInt16LittleEndian(rawBytes[46:48])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.WorkstationFields.WorkstationBufferOffset, err = decodeInt32LittleEndian(rawBytes[48:52])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.EncryptedRandomSessionKeyFields.EncryptedRandomSessionKeyLen, err = decodeInt16LittleEndian(rawBytes[52:54])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.EncryptedRandomSessionKeyFields.EncryptedRandomSessionKeyMaxLen, err = decodeInt16LittleEndian(rawBytes[54:56])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.EncryptedRandomSessionKeyFields.EncryptedRandomSessionKeyBufferOffset, err = decodeInt32LittleEndian(rawBytes[56:60])
-	if err != nil {
-		return nil, err
-	}
-
-	AuthenticateMessage.NegotiateFlags, err = decodeInt32LittleEndian(rawBytes[60:64])
-	if err != nil {
-		return nil, err
-	}
+	AuthenticateMessage.MessageType = decodeInt32LittleEndian(rawBytes[8:12])
+	AuthenticateMessage.LmChallengeResponseFields.LmChallengeResponseLen = decodeInt16LittleEndian(rawBytes[12:14])
+	AuthenticateMessage.LmChallengeResponseFields.LmChallengeResponseMaxLen = decodeInt16LittleEndian(rawBytes[14:16])
+	AuthenticateMessage.LmChallengeResponseFields.LmChallengeResponseBufferOffset = decodeInt32LittleEndian(rawBytes[16:20])
+	AuthenticateMessage.NtChallengeResponseFields.NtChallengeResponseLen = decodeInt16LittleEndian(rawBytes[20:22])
+	AuthenticateMessage.NtChallengeResponseFields.NtChallengeResponseMaxLen = decodeInt16LittleEndian(rawBytes[22:24])
+	AuthenticateMessage.NtChallengeResponseFields.NtChallengeResponseBufferOffset = decodeInt32LittleEndian(rawBytes[24:28])
+	AuthenticateMessage.DomainNameFields.DomainNameLen = decodeInt16LittleEndian(rawBytes[28:30])
+	AuthenticateMessage.DomainNameFields.DomainNameMaxLen = decodeInt16LittleEndian(rawBytes[30:32])
+	AuthenticateMessage.DomainNameFields.DomainNameBufferOffset = decodeInt32LittleEndian(rawBytes[32:36])
+	AuthenticateMessage.UserNameFields.UserNameLen = decodeInt16LittleEndian(rawBytes[36:38])
+	AuthenticateMessage.UserNameFields.UserNameMaxLen = decodeInt16LittleEndian(rawBytes[38:40])
+	AuthenticateMessage.UserNameFields.UserNameBufferOffset = decodeInt32LittleEndian(rawBytes[40:44])
+	AuthenticateMessage.WorkstationFields.WorkstationLen = decodeInt16LittleEndian(rawBytes[44:46])
+	AuthenticateMessage.WorkstationFields.WorkstationMaxLen = decodeInt16LittleEndian(rawBytes[46:48])
+	AuthenticateMessage.WorkstationFields.WorkstationBufferOffset = decodeInt32LittleEndian(rawBytes[48:52])
+	AuthenticateMessage.EncryptedRandomSessionKeyFields.EncryptedRandomSessionKeyLen = decodeInt16LittleEndian(rawBytes[52:54])
+	AuthenticateMessage.EncryptedRandomSessionKeyFields.EncryptedRandomSessionKeyMaxLen = decodeInt16LittleEndian(rawBytes[54:56])
+	AuthenticateMessage.EncryptedRandomSessionKeyFields.EncryptedRandomSessionKeyBufferOffset = decodeInt32LittleEndian(rawBytes[56:60])
+	AuthenticateMessage.NegotiateFlags = decodeInt32LittleEndian(rawBytes[60:64])
 	AuthenticateMessage.DecodedNegotiateFlags = DecodeNegotiateFlags(AuthenticateMessage.NegotiateFlags)
 
 	if AuthenticateMessage.DecodedNegotiateFlags.NTLM_NEGOTIATE_VERSION {
 		AuthenticateMessage.Version.ProductMajorVersion = rawBytes[64]
 		AuthenticateMessage.Version.ProductMinorVersion = rawBytes[65]
-		AuthenticateMessage.Version.ProductBuild, err = decodeInt16LittleEndian(rawBytes[66:68])
-		if err != nil {
-			return nil, err
-		}
-
+		AuthenticateMessage.Version.ProductBuild = decodeInt16LittleEndian(rawBytes[66:68])
 		AuthenticateMessage.Version.Reserved = rawBytes[68:71]
 		AuthenticateMessage.Version.NTLMRevisionCurrent = rawBytes[71]
 	}
@@ -396,11 +238,7 @@ func DecodeAuthenticateMessage(rawBytes []byte) (*AUTHENTICATE_MESSAGE, error) {
 	AuthenticateMessage.MIC = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 	for _, avPair := range AuthenticateMessage.NtChallengeResponseFields.NTLMv2Response.ClientChallenge.AvPairs {
 		if avPair.AvId == MsvAvFlags {
-			AvFlags, err := decodeInt32LittleEndian(avPair.AvData[:4])
-			if err != nil {
-				return nil, fmt.Errorf("unable to decode MsvAvFlags value, err: %v", err)
-			}
-
+			AvFlags := decodeInt32LittleEndian(avPair.AvData[:4])
 			if AvFlags&MessageIntegrityCodeIncluded == MessageIntegrityCodeIncluded {
 				AuthenticateMessage.MIC = rawBytes[72:88]
 			}
@@ -451,21 +289,14 @@ func DecodeNegotiateFlags(NegotiateFlags uint32) DECODED_NEGOTIATE_FLAGS {
 
 func DecodeAvPairs(rawBytes []byte) ([]AV_PAIR, error) {
 	var AvPairList []AV_PAIR
-	var err error
 
 	for i := 0; i < len(rawBytes); {
 		var AvPair AV_PAIR
 
-		AvPair.AvId, err = decodeInt16LittleEndian(rawBytes[i : i+2])
-		if err != nil {
-			return nil, err
-		}
+		AvPair.AvId = decodeInt16LittleEndian(rawBytes[i : i+2])
 		i += 2
 
-		AvPair.AvLen, err = decodeInt16LittleEndian(rawBytes[i : i+2])
-		if err != nil {
-			return nil, err
-		}
+		AvPair.AvLen = decodeInt16LittleEndian(rawBytes[i : i+2])
 		i += 2
 
 		AvPair.AvData = rawBytes[i : i+int(AvPair.AvLen)]
