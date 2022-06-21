@@ -59,7 +59,7 @@ func ADFSRelayStateHandler(w http.ResponseWriter, r *http.Request) {
 			cookie := http.Cookie{Name: "MSISSamlRequest", Value: MSISamlRequest}
 			http.SetCookie(w, &cookie)
 
-			http.Redirect(w, r, "/?client-request-id="+clientRequestID, http.StatusMovedPermanently)
+			http.Redirect(w, r, "/?client-request-id="+url.QueryEscape(clientRequestID), http.StatusMovedPermanently)
 			return
 		}
 	}
@@ -173,7 +173,7 @@ func ADFSRelayStateHandler(w http.ResponseWriter, r *http.Request) {
 func SendNegotiateMessagetoADFS(clientRequestID string, MSISSamlRequest string, headerVal string) (string, error) {
 	httpClient := http.Client{}
 
-	apiUrl := targetSite + "/adfs/ls/wia?client-request-id=" + clientRequestID
+	apiUrl := targetSite + "/adfs/ls/wia?client-request-id=" + url.QueryEscape(clientRequestID)
 	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
 		return "", fmt.Errorf("error creating ADFS POST request: %v", err)
@@ -220,7 +220,7 @@ func SendAuthenticateMessagetoADFS(clientRequestID string, MSISSamlRequest strin
 		},
 	}
 
-	apiUrl := targetSite + "/adfs/ls/wia?client-request-id=" + clientRequestID
+	apiUrl := targetSite + "/adfs/ls/wia?client-request-id=" + url.QueryEscape(clientRequestID)
 	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
@@ -256,7 +256,7 @@ func GetMSISAMLRequestCookie(clientRequestID string) (string, error) {
 	form.Add("SignInSubmit", "Sign+in")
 	form.Add("SingleSignOut", "SingleSignOut")
 
-	apiUrl := targetSite + "/adfs/ls/idpinitiatedsignon.aspx?client-request-id=" + clientRequestID
+	apiUrl := targetSite + "/adfs/ls/idpinitiatedsignon.aspx?client-request-id=" + url.QueryEscape(clientRequestID)
 	req, err := http.NewRequest("POST", apiUrl, strings.NewReader(form.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	if err != nil {
