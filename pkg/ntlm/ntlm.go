@@ -61,6 +61,10 @@ func DecodeNegotiateMessage(rawBytes []byte) (*NEGOTIATE_MESSAGE, error) {
 	NegotiateMessage.WorkstationFields.WorkstationBufferOffset = decodeInt32LittleEndian(rawBytes[28:32])
 
 	if NegotiateMessage.DecodedNegotiateFlags.NTLM_NEGOTIATE_VERSION {
+		if len(rawBytes) < 40 {
+			return nil, fmt.Errorf("NTLM message too short")
+		}
+
 		NegotiateMessage.Version.ProductMajorVersion = rawBytes[32]
 		NegotiateMessage.Version.ProductMinorVersion = rawBytes[33]
 		NegotiateMessage.Version.ProductBuild = decodeInt16LittleEndian(rawBytes[34:36])
@@ -128,6 +132,10 @@ func DecodeChallengeMessage(rawBytes []byte) (*CHALLENGE_MESSAGE, error) {
 	}
 
 	if ChallengeMessage.DecodedNegotiateFlags.NTLM_NEGOTIATE_VERSION {
+		if len(rawBytes) < 54 {
+			return nil, fmt.Errorf("NTLM message too short")
+		}
+
 		ChallengeMessage.Version.ProductMajorVersion = rawBytes[32]
 		ChallengeMessage.Version.ProductMinorVersion = rawBytes[33]
 		ChallengeMessage.Version.ProductBuild = decodeInt16LittleEndian(rawBytes[48:50])
@@ -170,6 +178,10 @@ func DecodeAuthenticateMessage(rawBytes []byte) (*AUTHENTICATE_MESSAGE, error) {
 	AuthenticateMessage.DecodedNegotiateFlags = DecodeNegotiateFlags(AuthenticateMessage.NegotiateFlags)
 
 	if AuthenticateMessage.DecodedNegotiateFlags.NTLM_NEGOTIATE_VERSION {
+		if len(rawBytes) < 72 {
+			return nil, fmt.Errorf("NTLM message too short")
+		}
+
 		AuthenticateMessage.Version.ProductMajorVersion = rawBytes[64]
 		AuthenticateMessage.Version.ProductMinorVersion = rawBytes[65]
 		AuthenticateMessage.Version.ProductBuild = decodeInt16LittleEndian(rawBytes[66:68])
@@ -240,6 +252,10 @@ func DecodeAuthenticateMessage(rawBytes []byte) (*AUTHENTICATE_MESSAGE, error) {
 		if avPair.AvId == MsvAvFlags {
 			AvFlags := decodeInt32LittleEndian(avPair.AvData[:4])
 			if AvFlags&MessageIntegrityCodeIncluded == MessageIntegrityCodeIncluded {
+				if len(rawBytes) < 89 {
+					return nil, fmt.Errorf("NTLM message too short")
+				}
+
 				AuthenticateMessage.MIC = rawBytes[72:88]
 			}
 		}
@@ -293,12 +309,17 @@ func DecodeAvPairs(rawBytes []byte) ([]AV_PAIR, error) {
 	for i := 0; i < len(rawBytes); {
 		var AvPair AV_PAIR
 
+		if len(rawBytes) < i+4 {
+			return nil, fmt.Errorf("NTLM message too short")
+		}
 		AvPair.AvId = decodeInt16LittleEndian(rawBytes[i : i+2])
 		i += 2
-
 		AvPair.AvLen = decodeInt16LittleEndian(rawBytes[i : i+2])
 		i += 2
 
+		if len(rawBytes) < i+int(AvPair.AvLen) {
+			return nil, fmt.Errorf("NTLM message too short")
+		}
 		AvPair.AvData = rawBytes[i : i+int(AvPair.AvLen)]
 		i += int(AvPair.AvLen)
 
