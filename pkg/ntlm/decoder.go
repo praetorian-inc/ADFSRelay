@@ -14,20 +14,10 @@
 
 package ntlm
 
-import "fmt"
-
-func decodeInt16LittleEndian(rawBytes []byte) (uint16, error) {
-	if len(rawBytes) != 2 {
-		return 0, fmt.Errorf("byte array must be two bytes")
-	}
-
-	return uint16(rawBytes[0]) | uint16(rawBytes[1])<<8, nil
+func decodeInt16LittleEndian(rawBytes []byte) uint16 {
+	return uint16(rawBytes[0]) | uint16(rawBytes[1])<<8
 }
 
-func decodeInt32LittleEndian(rawBytes []byte) (uint32, error) {
-	if len(rawBytes) != 4 {
-		return 0, fmt.Errorf("byte array must be four bytes")
-	}
-
-	return uint32(rawBytes[0]) | uint32(rawBytes[1])<<8 | uint32(rawBytes[2])<<16 | uint32(rawBytes[3])<<24, nil
+func decodeInt32LittleEndian(rawBytes []byte) uint32 {
+	return uint32(rawBytes[0]) | uint32(rawBytes[1])<<8 | uint32(rawBytes[2])<<16 | uint32(rawBytes[3])<<24
 }
