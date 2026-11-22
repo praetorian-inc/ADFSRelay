@@ -15,6 +15,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -33,6 +34,7 @@ import (
 var (
 	targetSite string
 	debug      bool
+	insecure   bool
 )
 
 func ADFSRelayStateHandler(w http.ResponseWriter, r *http.Request) {
@@ -286,6 +288,7 @@ func main() {
 	var err error
 
 	var debugFlag bool
+	var insecureFlag bool
 	var listenPortFlag int
 	var targetSiteFlag string
 
@@ -294,6 +297,7 @@ func main() {
 	flag.IntVar(&listenPortFlag, "port", 8080, "The port the HTTP listener should listen on")
 	flag.StringVar(&targetSiteFlag, "targetSite", "", "The ADFS site to target for the relaying attack (e.g. https://sts.contoso.com)")
 	flag.BoolVar(&debugFlag, "debug", false, "Enables debug output")
+	flag.BoolVar(&insecureFlag, "insecure", false, "Disable TLS certificate validation")
 
 	if *helpFlag {
 		flag.Usage()
@@ -328,9 +332,15 @@ func main() {
 
 	targetSite = targetSiteFlag
 	debug = debugFlag
+	insecure = insecureFlag
 
 	if debug {
 		fmt.Println("Debug mode enabled")
+	}
+
+	if insecure {
+		fmt.Println("TLS verification disabled")
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
 	http.HandleFunc("/", ADFSRelayStateHandler)
